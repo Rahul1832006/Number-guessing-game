@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A premium, modern glassmorphic Number Guessing Game with leaderboards, guess history, achievements, and multiplayer modes.">
+  <title>Guessify // Ultimate Number Guessing Game</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Preconnect to Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Shifting mesh background decoration -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  
+  <!-- Canvas for Confetti -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="app-container">
+    <!-- Top Actions / Floating Controls -->
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-accent">⚡</span> Guessify
+      </div>
+      <div class="header-controls">
+        <button id="sound-toggle" class="control-btn" title="Toggle Sound" aria-label="Toggle Sound">
+          <!-- Audio On Icon -->
+          <svg class="icon icon-sound-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <!-- Audio Off Icon -->
+          <svg class="icon icon-sound-off hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="22" y1="9" x2="16" y2="15"></line>
+            <line x1="16" y1="9" x2="22" y2="15"></line>
+          </svg>
+        </button>
+        <button id="theme-toggle" class="control-btn" title="Toggle Theme" aria-label="Toggle Theme">
+          <!-- Sun Icon -->
+          <svg class="icon icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <!-- Moon Icon -->
+          <svg class="icon icon-moon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="game-card">
+      <!-- 1. START SCREEN -->
+      <section id="start-screen" class="view-panel active">
+        <div class="intro-header">
+          <h1 class="game-title">Guess the Number</h1>
+          <p class="game-subtitle">Train your brain. Play Solo or challenge a friend in a local Duel!</p>
+        </div>
+
+        <!-- Game Mode Selection -->
+        <div class="mode-section">
+          <h2 class="section-title">Select Mode</h2>
+          <div class="mode-selector">
+            <button id="mode-solo" class="mode-btn active" data-mode="solo">
+              <span>👤</span> Single Player
+            </button>
+            <button id="mode-multi" class="mode-btn" data-mode="multiplayer">
+              <span>⚔️</span> 2 Player Duel
+            </button>
+          </div>
+        </div>
+
+        <!-- Multiplayer Player Names (Hidden by default) -->
+        <div id="multiplayer-names-container" class="multiplayer-names-container hidden">
+          <div class="names-grid">
+            <div class="name-input-group">
+              <label for="player1-name-input">Player 1 Name</label>
+              <input type="text" id="player1-name-input" placeholder="Player 1" value="Player 1" maxlength="12">
+            </div>
+            <div class="name-input-group">
+              <label for="player2-name-input">Player 2 Name</label>
+              <input type="text" id="player2-name-input" placeholder="Player 2" value="Player 2" maxlength="12">
+            </div>
+          </div>
+        </div>
+
+        <!-- Difficulty selection -->
+        <div class="difficulty-section">
+          <h2 class="section-title">Select Difficulty</h2>
+          <div class="difficulty-grid">
+            <button id="difficulty-easy" class="diff-card active" data-difficulty="easy">
+              <div class="diff-badge easy">Easy</div>
+              <div class="diff-range">1 – 50</div>
+              <div class="diff-details">
+                <span>⏱️ 60s</span>
+                <span>🎯 10 Tries</span>
+              </div>
+            </button>
+            
+            <button id="difficulty-medium" class="diff-card" data-difficulty="medium">
+              <div class="diff-badge medium">Medium</div>
+              <div class="diff-range">1 – 100</div>
+              <div class="diff-details">
+                <span>⏱️ 45s</span>
+                <span>🎯 8 Tries</span>
+              </div>
+            </button>
+            
+            <button id="difficulty-hard" class="diff-card" data-difficulty="hard">
+              <div class="diff-badge hard">Hard</div>
+              <div class="diff-range">1 – 500</div>
+              <div class="diff-details">
+                <span>⏱️ 30s</span>
+                <span>🎯 6 Tries</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <button id="start-game-btn" class="btn btn-primary btn-glow">
+          Start Game
+          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+
+        <!-- Dynamic Tabbed Control Panel (Stats, Leaderboard, Achievements) -->
+        <div class="tabs-container">
+          <div class="tabs-header">
+            <button class="tab-btn active" data-tab="stats">Stats</button>
+            <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+            <button class="tab-btn" data-tab="achievements">Badges</button>
+          </div>
+          
+          <div class="tabs-content">
+            <!-- Tab 1: Stats -->
+            <div id="tab-stats" class="tab-panel active">
+              <div class="stats-header-bar">
+                <span class="subpanel-title">Cumulative Record</span>
+                <button id="reset-stats-btn" class="text-btn text-danger" title="Reset stats">
+                  <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Reset
+                </button>
+              </div>
+              <div class="stats-grid">
+                <div class="stat-box">
+                  <div id="stat-played" class="stat-value">0</div>
+                  <div class="stat-label">Played</div>
+                </div>
+                <div class="stat-box">
+                  <div id="stat-wins" class="stat-value">0</div>
+                  <div class="stat-label">Wins</div>
+                </div>
+                <div class="stat-box">
+                  <div id="stat-winrate" class="stat-value">0%</div>
+                  <div class="stat-label">Win Rate</div>
+                </div>
+                <div class="stat-box">
+                  <div id="stat-best" class="stat-value">-</div>
+                  <div class="stat-label">Best Score</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 2: Leaderboard -->
+            <div id="tab-leaderboard" class="tab-panel">
+              <div class="stats-header-bar">
+                <span class="subpanel-title">Top Rankings - <span id="leaderboard-diff-label" class="text-accent-glow">Easy</span></span>
+              </div>
+              <div id="leaderboard-list" class="leaderboard-list">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+
+            <!-- Tab 3: Achievements & Level -->
+            <div id="tab-achievements" class="tab-panel">
+              <div class="achievements-header-bar">
+                <h3 id="player-level-badge" class="player-level-badge">Level 1: Novice Guesser</h3>
+                <span id="achievements-unlocked-count" class="unlocked-count">0/6 Unlocked</span>
+              </div>
+              <div class="achievements-grid">
+                <div class="badge-card locked" id="badge-firstWin" data-title="First Win" data-desc="Guess the secret number correctly.">
+                  <div class="badge-icon-wrap">🏆</div>
+                  <div class="badge-text-wrap">
+                    <div class="badge-title">First Win</div>
+                    <div class="badge-desc">Win your first game.</div>
+                  </div>
+                </div>
+                <div class="badge-card locked" id="badge-speedDemon" data-title="Speed Demon" data-desc="Win a game with over 75% of the time remaining.">
+                  <div class="badge-icon-wrap">⚡</div>
+                  <div class="badge-text-wrap">
+                    <div class="badge-title">Speed Demon</div>
+                    <div class="badge-desc">Win with >75% time remaining.</div>
+                  </div>
+                </div>
+                <div class="badge-card locked" id="badge-sharpShooter" data-title="Sharp Shooter" data-desc="Win a game in 3 or fewer attempts.">
+                  <div class="badge-icon-wrap">🎯</div>
+                  <div class="badge-text-wrap">
+                    <div class="badge-title">Sharp Shooter</div>
+                    <div class="badge-desc">Win in 3 attempts or fewer.</div>
+                  </div>
+                </div>
+                <div class="badge-card locked" id="badge-mindReader" data-title="Mind Reader" data-desc="Win a game on your very first guess.">
+                  <div class="badge-icon-wrap">🔮</div>
+                  <div class="badge-text-wrap">
+                    <div class="badge-title">Mind Reader</div>
+                    <div class="badge-desc">Win on the very first guess!</div>
+                  </div>
+                </div>
+                <div class="badge-card locked" id="badge-hardcore" data-title="Hardcore Victor" data-desc="Win a game on Hard difficulty.">
+                  <div class="badge-icon-wrap">🔥</div>
+                  <div class="badge-text-wrap">
+                    <div class="badge-title">Hardcore Victor</div>
+                    <div class="badge-desc">Win on Hard difficulty.</div>
+                  </div>
+                </div>
+                <div class="badge-card locked" id="badge-survivor" data-title="Survivor" data-desc="Win a game on your final attempt.">
+                  <div class="badge-icon-wrap">🛡️</div>
+                  <div class="badge-text-wrap">
+                    <div class="badge-title">Survivor</div>
+                    <div class="badge-desc">Win on final attempts left.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. GAMEPLAY SCREEN -->
+      <section id="game-screen" class="view-panel">
+        <!-- Multiplayer Turn Header Badge -->
+        <div id="turn-indicator" class="turn-indicator hidden">
+          <span class="swords-icon">⚔️</span> Current Turn: <strong id="active-player-name">Player 1</strong>
+        </div>
+
+        <!-- Game HUD -->
+        <div class="game-hud">
+          <div class="hud-item timer-hud">
+            <span class="hud-icon">⏱️</span>
+            <div class="hud-label-group">
+              <span class="hud-title">Time Left</span>
+              <span id="timer-display" class="hud-val">00:00</span>
+            </div>
+          </div>
+          <div class="hud-item attempts-hud">
+            <span class="hud-icon">🎯</span>
+            <div class="hud-label-group">
+              <span class="hud-title">Attempts</span>
+              <span id="attempts-display" class="hud-val">0 / 0</span>
+            </div>
+          </div>
+          <div class="hud-item score-hud">
+            <span class="hud-icon">✨</span>
+            <div class="hud-label-group">
+              <span class="hud-title">Score</span>
+              <span id="score-display" class="hud-val">100</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual attempts progress bar -->
+        <div class="progress-bar-container">
+          <div id="attempts-progress-bar" class="progress-bar-fill"></div>
+        </div>
+
+        <!-- Range indicator -->
+        <div class="range-info">
+          Thinking of a number between <strong id="range-min">1</strong> and <strong id="range-max">100</strong>.
+        </div>
+
+        <!-- Feedback Log -->
+        <div class="feedback-container" id="feedback-card-wrapper">
+          <div id="game-feedback" class="feedback-text">Make your first guess!</div>
+          <div class="attempts-track" id="attempts-visualizer">
+            <!-- Dynamic dots for remaining attempts -->
+          </div>
+        </div>
+
+        <!-- Input Section -->
+        <form id="guess-form" class="guess-form" autocomplete="off" onsubmit="return false;">
+          <div class="input-wrapper">
+            <input type="number" id="guess-input" placeholder="Enter number..." min="1" max="500" required autofocus>
+            <div class="input-glow"></div>
+          </div>
+          <button type="submit" id="submit-guess-btn" class="btn btn-primary">
+            Submit
+          </button>
+        </form>
+
+        <!-- Hint Section -->
+        <div class="hint-container">
+          <div class="hint-header">
+            <button id="hint-btn" class="btn btn-secondary">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              Get Hint
+            </button>
+            <div class="hints-remaining-pills">
+              <span class="hint-pill" id="hint-pill-1"></span>
+              <span class="hint-pill" id="hint-pill-2"></span>
+            </div>
+          </div>
+          <div id="hint-display" class="hint-message-box hidden">
+            <!-- Hint message appears here -->
+          </div>
+        </div>
+
+        <!-- Guess History Scrollable List -->
+        <div id="history-container" class="history-container hidden">
+          <div class="history-header">
+            <span class="history-title">Guess History</span>
+          </div>
+          <div id="history-list" class="history-list">
+            <!-- Appended list rows go here -->
+          </div>
+        </div>
+
+        <!-- Back/Abort action -->
+        <div class="game-footer">
+          <button id="restart-btn" class="text-btn">
+            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 4v6h-6"></path>
+              <path d="M1 20v-6h6"></path>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            Restart Game
+          </button>
+        </div>
+      </section>
+
+      <!-- 3. END GAME SCREEN -->
+      <section id="result-screen" class="view-panel">
+        <div class="result-banner">
+          <div class="result-illustration">
+            <div id="result-icon-container" class="result-icon">
+              <!-- Dynamically populated based on win/lose -->
+            </div>
+          </div>
+          <h1 id="result-title" class="result-title">Victory!</h1>
+          <p id="result-subtitle" class="result-subtitle">You guessed the secret number!</p>
+        </div>
+
+        <!-- Score Saving Section (Win State Solo Mode only) -->
+        <div id="leaderboard-save-container" class="leaderboard-save-container hidden">
+          <div class="leaderboard-save-box">
+            <label for="player-name-input" class="save-prompt">Enter name for Leaderboard:</label>
+            <div class="save-input-group">
+              <input type="text" id="player-name-input" placeholder="Your Name" maxlength="12" autocomplete="off">
+              <button id="submit-score-btn" class="btn btn-primary">Save Score</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-details-card">
+          <div class="result-stat-row">
+            <span class="result-stat-label">Correct Number:</span>
+            <span id="result-correct-number" class="result-stat-value text-accent">--</span>
+          </div>
+          <div class="result-stat-row">
+            <span class="result-stat-label">Attempts Used:</span>
+            <span id="result-attempts" class="result-stat-value">--</span>
+          </div>
+          <div class="result-stat-row">
+            <span class="result-stat-label">Points Earned:</span>
+            <span id="result-score" class="result-stat-value text-success">--</span>
+          </div>
+          <div class="result-stat-row">
+            <span class="result-stat-label">Best Score:</span>
+            <span id="result-best-score" class="result-stat-value">--</span>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button id="play-again-btn" class="btn btn-primary btn-glow">
+            Play Again
+            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
